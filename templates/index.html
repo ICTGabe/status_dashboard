@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pinewood SOC Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f5f5f5; }
+        .device { border: 1px solid #ddd; padding: 15px; margin: 10px; border-radius: 5px; background: white; }
+        .client { background-color: #f0f8ff; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .status-healthy { color: green; font-weight: bold; }
+        .status-critical { color: red; font-weight: bold; }
+        button { 
+            margin-left: 10px; 
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #45a049; }
+        #refresh-btn {
+            background-color: #2196F3;
+            margin-bottom: 20px;
+        }
+        #refresh-btn:hover { background-color: #0b7dda; }
+        .login-form { max-width: 400px; margin: 50px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="login-form" id="loginForm">
+            <h2>Pinewood SOC Login</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button onclick="login()">Login</button>
+            <p id="loginError" style="color: red; display: none;">Invalid credentials</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <h1>Pinewood SOC Dashboard</h1>
+            <button id="refresh-btn" onclick="refreshStatus()">Refresh Status</button>
+            <button id="logout-btn" onclick="logout()" style="background-color: #f44336;">Logout</button>
+
+            <h2>Device Status</h2>
+            <div id="deviceList"></div>
+        </div>
+    </div>
+
+    <script>
+        let authHeader = '';
+        
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').innerText = 'Please enter both username and password';
+                return;
+            }
+            
+            authHeader = 'Basic ' + btoa(username + ':' + password);
+            
+            // Test authentication
+            fetch('/api/health', {
+                headers: {
+                    'Authorization': authHeader
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                    refreshStatus();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginError').innerText = 'Invalid credentials';
+                }
+            })
+            .catch(error => {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').innerText = 'Login failed: ' + error;
+            });
+        }
+        
+        function logout() {
+            authHeader = '';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+        
+        function refreshStatus() {
+            fetch('/api/devices', {
+                headers: {
+                    'Authorization': authHeader
+                }
+            })
+            .then(response => response.json())
+            .then(clients => {
+                const deviceList = document.getElementById('deviceList');
+                deviceList.innerHTML = '';
+                
+                clients.forEach(client => {
+                    const clientDiv = document.createElement('div');
+                    clientDiv.className = 'client';
+                    clientDiv.innerHTML = `<h3>${client.name}</h3>`;
+                    
+                    const serverList = document.createElement('div');
+                    serverList.className = 'server-list';
+                    
+                    client.servers.forEach(server => {
+                        const serverDiv = document.createElement('div');
+                        serverDiv.className = 'device';
+                        serverDiv.innerHTML = `
+                            <strong>${server.name}</strong> - 
+                            IP: ${server.ip}<br>
+                            Status: <span class="status-${server.status}">${server.status}</span>
+                            <button onclick="restartDevice(${client.id}, '${server.name}')">Restart Service</button>
+                        `;
+                        serverList.appendChild(serverDiv);
+                    });
+                    
+                    clientDiv.appendChild(serverList);
+                    deviceList.appendChild(clientDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error fetching device status. Check if Docker containers are running and accessible.');
+            });
+        }
+        
+        function restartDevice(clientId, deviceName) {
+            if (!confirm(`Are you sure you want to restart services on ${deviceName}?`)) {
+                return;
+            }
+            
+            fetch(`/api/device/${clientId}/${deviceName}/restart`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}\n${data.details}`);
+                } else {
+                    alert(`Success: ${data.message}\nOutput: ${data.output}`);
+                }
+                refreshStatus();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error restarting device');
+            });
+        }
+    </script>
+</body>
+</html>

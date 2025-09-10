@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pinewood Status Dashboard Demo</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .device { border: 1px solid #ccc; padding: 15px; margin: 10px; border-radius: 5px; width: 300px; }
+        .status-healthy { color: green; font-weight: bold; }
+        .status-critical { color: red; font-weight: bold; }
+        button { 
+            margin-left: 10px; 
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #45a049; }
+        #refresh-btn {
+            background-color: #2196F3;
+            margin-bottom: 20px;
+        }
+        #refresh-btn:hover { background-color: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Status Dashboard Demo</h1>
+    <button id="refresh-btn" onclick="refreshStatus()">Refresh Status</button>
+    <div id="deviceList"></div>
+
+    <script>
+        function refreshStatus() {
+            fetch('/api/devices')
+                .then(response => response.json())
+                .then(data => {
+                    const deviceList = document.getElementById('deviceList');
+                    deviceList.innerHTML = '';
+                    data.forEach(device => {
+                        const deviceDiv = document.createElement('div');
+                        deviceDiv.className = 'device';
+                        deviceDiv.innerHTML = `
+                            <strong>${device.name}</strong> - 
+                            IP: ${device.ip}<br>
+                            Status: <span class="status-${device.status}">${device.status}</span>
+                            <button onclick="restartDevice('${device.name}')">Restart Service</button>
+                        `;
+                        deviceList.appendChild(deviceDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching device status');
+                });
+        }
+
+        function restartDevice(deviceName) {
+            if (!confirm(`Are you sure you want to restart services on ${deviceName}?`)) {
+                return;
+            }
+            
+            fetch(`/api/device/${deviceName}/restart`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(`Error: ${data.error}\n${data.details}`);
+                    } else {
+                        alert(`Success: ${data.message}\nOutput: ${data.output}`);
+                    }
+                    refreshStatus(); // Refresh the status after action
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error restarting device');
+                });
+        }
+
+        // Load status on page start
+        window.onload = refreshStatus;
+    </script>
+    <!-- Add to your index.html -->
+<div id="clientManagement">
+    <h2>Client Management</h2>
+    <div id="clientList"></div>
+</div>
+
+<div id="schedulingInterface">
+    <h2>Schedule Updates</h2>
+    <form id="scheduleForm">
+        <select id="clientSelect" required>
+            <option value="">Select Client</option>
+        </select>
+        <select id="serverSelect" multiple required>
+            <option value="">Select Servers</option>
+        </select>
+        <input type="datetime-local" id="scheduledTime" required>
+        <select id="updateType" required>
+            <option value="security">Security Update</option>
+            <option value="maintenance">Maintenance Update</option>
+            <option value="critical">Critical Update</option>
+        </select>
+        <button type="submit">Schedule Update</button>
+    </form>
+</div>
+
+<div id="scheduledUpdates">
+    <h2>Scheduled Updates</h2>
+    <div id="updatesList"></div>
+</div>
+
+<div id="ticketingSystem">
+    <h2>Recent Tickets</h2>
+    <div id="ticketsList"></div>
+</div>
+</body>
+</html>
