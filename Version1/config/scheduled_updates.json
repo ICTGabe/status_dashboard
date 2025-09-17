@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "client_id": 1,
+    "servers": [
+      "Firewall"
+    ],
+    "scheduled_time": "2025-09-17T12:01:00Z",
+    "update_type": "security",
+    "command": "shutdown",
+    "status": "completed",
+    "created_at": "2025-09-17T13:38:06.489870",
+    "results": [
+      "Update successful on Firewall: sh: shutdown: not found\n"
+    ],
+    "completed_at": "2025-09-17T13:38:13.357263"
+  }
+]

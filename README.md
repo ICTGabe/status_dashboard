@@ -25,12 +25,21 @@ python app.py
      
 
 # See P1 for first usable production version
-Update:
+Update:      
 Added graph to a save file,    
 Added scheduled tasks to a save file,    
-Added config to a single config file in json format,
-Scheduled task create ticket
-All working buttons
+Added config to a single config file in json format,     
+Scheduled task create ticket      
+All working buttons     
+
+# Working version, Version1 first acceptable PoC version     
+Usage:    
+```
+./setup-demov2.sh    
+pyhon app.py     
+```    
+log into http://127.0.0.1:5000/ as soc_analyst or soc_manager     
+
          
 # Info    
 rename the indexv[version].html to index.html in templates folder to make it work, the python file name doesn't matter.

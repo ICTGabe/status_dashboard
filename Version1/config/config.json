@@ -1,0 +1,25 @@
+{
+  "smtp": {
+    "server": "smtp.gmail.com",
+    "port": 587,
+    "username": "xxxxxxxxxxxxxxx@gmail.com",
+    "password": "xxxxxxxxxx"
+  },
+  "devices": [
+    {
+      "id": 1,
+      "name": "Client A",
+      "contact_email": "xxxxxxxxxxxxxxxx@gmail.com",
+      "servers": [
+        {"name": "Firewall", "ip": "172.18.0.2", "username": "root", "password": "root", "status": "unknown"},
+        {"name": "Sensor", "ip": "172.18.0.3", "username": "root", "password": "root", "status": "unknown"},
+        {"name": "Server1", "ip": "172.18.0.4", "username": "root", "password": "root", "status": "unknown"},
+        {"name": "Server2", "ip": "172.18.0.5", "username": "root", "password": "root", "status": "unknown"}
+      ]
+    }
+  ],
+  "users": {
+    "soc_analyst": "securepassword123",
+    "soc_manager": "managerpassword456"
+  }
+}
