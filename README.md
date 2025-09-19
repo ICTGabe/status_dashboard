@@ -45,3 +45,12 @@ log into http://127.0.0.1:5000/ as soc_analyst or soc_manager
 rename the indexv[version].html to index.html in templates folder to make it work, the python file name doesn't matter.
            
 check if you can ssh to fw and sensor using user root (password is also root)     
+
+Activate virtual environment first:   
+```    
+source venv/bin/activate     
+```     
+To install modules for python use:        
+```    
+pip install -r requirements.txt       
+```
